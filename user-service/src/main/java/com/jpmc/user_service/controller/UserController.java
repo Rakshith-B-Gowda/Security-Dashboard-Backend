@@ -1,11 +1,10 @@
 package com.jpmc.user_service.controller;
 
+import com.jpmc.user_service.entity.Permission;
 import com.jpmc.user_service.entity.User;
 import com.jpmc.user_service.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+//@NoArgsConstructor
 @RestController
 public class UserController {
    // @Autowired
@@ -37,5 +36,24 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    //  Request Read Access
+    @PostMapping("/{id}/request-read")
+    public ResponseEntity<String> requestRead(@PathVariable Long id) {
+        userService.updatePermission(id, Permission.READ);
+        return ResponseEntity.ok("Read permission requested.");
+    }
+
+    // Request Upload Access
+    @PostMapping("/{id}/request-read/upload")
+    public ResponseEntity<String> requestUpload(@PathVariable Long id) {
+        userService.updatePermission(id, Permission.READ_UPLOAD);
+        return ResponseEntity.ok("Upload permission requested.");
+    }
+
+    //  User - Check Permission Status
+    @GetMapping("/{id}/status")
+    public ResponseEntity<Permission> getStatus(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getPermission(id));
+    }
 
 }
