@@ -1,13 +1,12 @@
 package com.jpmc.user_service.service;
 
-import com.jpmc.user_service.dto.UserDto;
+
 import com.jpmc.user_service.entity.User;
 import com.jpmc.user_service.exception.UserNotFoundException;
 import com.jpmc.user_service.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
