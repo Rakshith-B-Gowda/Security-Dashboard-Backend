@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SignupRequestMapper {
 
-    public Users toUser(SignupRequest request) {
+    public static Users toUser(SignupRequest request) {
         Users user = new Users();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
