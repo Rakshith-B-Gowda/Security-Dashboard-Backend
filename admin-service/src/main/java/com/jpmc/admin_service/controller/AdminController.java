@@ -18,20 +18,49 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @GetMapping
-    public List<Admin> listPending() {
-        return adminService.listPending();
+    // Endpoint to view all pending signup requests (for admin dashboard)
+    @GetMapping("/pending")
+    public List<Admin> listPendingRequests() {
+        return adminService.listPendingRequests();
     }
 
+    // Endpoint to view ALL signup requests (pending, approved, rejected - for admin overview)
+    @GetMapping("/all")
+    public List<Admin> listAllRequests() {
+        return adminService.listAllRequests();
+    }
+
+    // Endpoint for Admin to approve a specific signup request
     @PutMapping("/approve/{id}")
-    public ResponseEntity<Void> approve(@PathVariable Long id) {
-        adminService.approve(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content
+    public ResponseEntity<String> approveRequest(@PathVariable Long id) {
+        try {
+            adminService.approveRequest(id);
+            // Using HttpStatus.OK and a message for more descriptive success than 204 No Content
+            return new ResponseEntity<>("Request ID " + id + " approved successfully.", HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict (e.g., already approved/rejected)
+        } catch (Exception e) {
+            return new ResponseEntity<>("An unexpected error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+        }
     }
 
+    // Endpoint for Admin to reject a specific signup request
     @PutMapping("/reject/{id}")
-    public ResponseEntity<Void> reject(@PathVariable Long id) {
-        adminService.reject(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content
+    public ResponseEntity<String> rejectRequest(@PathVariable Long id) {
+        try {
+            adminService.rejectRequest(id);
+            // Using HttpStatus.OK and a message for more descriptive success than 204 No Content
+            return new ResponseEntity<>("Request ID " + id + " rejected successfully.", HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict
+        } catch (Exception e) {
+            return new ResponseEntity<>("An unexpected error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+        }
     }
+
+
 }
