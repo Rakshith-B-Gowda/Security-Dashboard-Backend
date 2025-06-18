@@ -1,0 +1,23 @@
+package com.jpmc.admin_service.service;
+
+import com.jpmc.admin_service.model.Admin;
+
+import java.util.List;
+
+public interface AdminService {
+
+    // Lists all pending signup requests
+    List<Admin> listPendingRequests();
+
+    // Allows admin to approve a signup request by ID
+    void approveRequest(Long id);
+
+    // Allows admin to reject a signup request by ID
+    void rejectRequest(Long id);
+
+    // Creates a new signup request (used internally or by event listener from UserService)
+    Admin createSignupRequest(String email, String requestedRole);
+
+    // Lists all signup requests regardless of status
+    List<Admin> listAllRequests();
+}
