@@ -1,25 +1,27 @@
 package com.jpmc.api_gateway.filter;
 
+import com.jpmc.api_gateway.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Value;
+import io.jsonwebtoken.JwtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import java.nio.charset.StandardCharsets;
 
-@Component
 public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Config> {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final JwtTokenService jwtTokenService;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    public JwtAuthFilter() {
+    public JwtAuthFilter(JwtTokenService jwtTokenService) {
         super(Config.class);
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Override
@@ -27,38 +29,49 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
 
+            // Check if the Authorization header exists
             if (!request.getHeaders().containsKey("Authorization")) {
+                logger.warn("Missing Authorization Header");
                 return onError(exchange, "Missing Authorization Header", HttpStatus.UNAUTHORIZED);
             }
 
-            String token = request.getHeaders().getFirst("Authorization").replace("Bearer ", "");
+            String authHeader = request.getHeaders().getFirst("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                logger.warn("Invalid Authorization header format");
+                return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
+            }
+            String token = authHeader.replace("Bearer ", "");
 
             try {
-                Claims claims = Jwts.parser()
-                        .setSigningKey(secret)
-                        .parseClaimsJws(token)
-                        .getBody();
-
+                Claims claims = jwtTokenService.validateToken(token);
                 String role = claims.get("role", String.class);
 
-                // Forward the role as a header (optional)
+                // Additional checks such as token expiration can be added in JwtTokenService.
+                // Optionally forward the role header downstream
                 ServerHttpRequest modifiedRequest = request.mutate()
                         .header("X-Role", role)
                         .build();
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());
-
-            } catch (Exception e) {
-                return onError(exchange, "Invalid JWT Token", HttpStatus.UNAUTHORIZED);
+            } catch (JwtException e) {
+                logger.error("JWT validation failed: {}", e.getMessage());
+                return onError(exchange, "Invalid JWT Token: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         };
     }
 
+    /**
+     * Returns a JSON error response.
+     */
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus status) {
         exchange.getResponse().setStatusCode(status);
-        return exchange.getResponse().setComplete();
+        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+        String errorJson = "{\"error\": \"" + err + "\"}";
+        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(errorJson.getBytes(StandardCharsets.UTF_8));
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
     public static class Config {
+        // Put configuration properties for this filter here if needed.
     }
 }
