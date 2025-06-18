@@ -12,22 +12,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
 import java.nio.charset.StandardCharsets;
 
 public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Config> {
 
     private final JwtTokenService jwtTokenService;
+    private final RouteValidator routeValidator;
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    public JwtAuthFilter(JwtTokenService jwtTokenService) {
+    public JwtAuthFilter(JwtTokenService jwtTokenService, RouteValidator routeValidator) {
         super(Config.class);
         this.jwtTokenService = jwtTokenService;
+        this.routeValidator = routeValidator;
     }
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
+
+            // Bypass token check for open endpoints (e.g. /auth/**)
+            if (!routeValidator.isSecured(request)) {
+                logger.info("Open endpoint {} accessed - bypassing JWT validation", request.getPath().value());
+                return chain.filter(exchange);
+            }
 
             // Check if the Authorization header exists
             if (!request.getHeaders().containsKey("Authorization")) {
@@ -46,7 +55,6 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
                 Claims claims = jwtTokenService.validateToken(token);
                 String role = claims.get("role", String.class);
 
-                // Additional checks such as token expiration can be added in JwtTokenService.
                 // Optionally forward the role header downstream
                 ServerHttpRequest modifiedRequest = request.mutate()
                         .header("X-Role", role)
@@ -72,6 +80,6 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
     }
 
     public static class Config {
-        // Put configuration properties for this filter here if needed.
+        // Additional filter configuration properties can be added here if needed.
     }
 }

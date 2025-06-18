@@ -28,4 +28,10 @@ public class AuthController {
         log.info("Received signup request for email: {}", req.getEmail());
         return authService.signup(req);
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        log.info("Test endpoint hit");
+        return ResponseEntity.ok("Auth Service is running");
+    }
 }
