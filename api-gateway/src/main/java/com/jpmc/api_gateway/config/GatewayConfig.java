@@ -31,8 +31,7 @@ public class GatewayConfig {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/auth/**").permitAll()
-                        .anyExchange().authenticated()
+                        .pathMatchers("/user/**","/auth/**","/admin/**","/eureka/**").permitAll()
                 );
         return http.build();
     }
@@ -42,6 +41,7 @@ public class GatewayConfig {
         return builder.routes()
                 // Unprotected routes for /auth/**; no JWT token validation is enforced
                 .route("auth-service", r -> r.path("/auth/**")
+                        .filters(f -> f.filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://AUTH-SERVICE"))
                 // Protected routes: /user/**
                 .route("user-service", r -> r.path("/user/**")

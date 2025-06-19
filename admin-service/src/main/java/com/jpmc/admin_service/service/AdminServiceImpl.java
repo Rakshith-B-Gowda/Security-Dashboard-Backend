@@ -1,7 +1,9 @@
 package com.jpmc.admin_service.service;
 
+import com.jpmc.admin_service.dto.AddRequestDto;
+import com.jpmc.admin_service.mapper.ToAdminMapper;
 import com.jpmc.admin_service.model.Admin;
-import com.jpmc.admin_service.model.Status; // Import the Status enum
+import com.jpmc.admin_service.enums.Status; // Import the Status enum
 import com.jpmc.admin_service.repository.AdminRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // For transactional operations
@@ -68,16 +70,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public Admin createSignupRequest(String email, String requestedRole) {
-        Admin newRequest = new Admin();
-        newRequest.setEmail(email);
-        newRequest.setRequestedRole(requestedRole);
-        newRequest.setStatus(Status.PENDING); // New requests are always PENDING
+    public Admin createSignupRequest(AddRequestDto addRequestDto) {
+        Admin newRequest= ToAdminMapper.toAdmin(addRequestDto);
         return adminRepository.save(newRequest);
     }
 
     @Override
     public List<Admin> listAllRequests() {
-        return adminRepository.findAll(); // Fetches all requests regardless of status
+        return adminRepository.findAll();
     }
 }

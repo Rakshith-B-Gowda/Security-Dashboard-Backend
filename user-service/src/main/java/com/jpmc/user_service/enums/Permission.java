@@ -1,6 +1,4 @@
-package com.jpmc.user_service.entity;
-
-import lombok.Data;
+package com.jpmc.user_service.enums;
 
 
 public enum Permission {
