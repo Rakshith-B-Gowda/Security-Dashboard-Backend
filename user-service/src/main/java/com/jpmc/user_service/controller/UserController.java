@@ -19,7 +19,7 @@ import java.util.List;
 public class UserController {
 
     UserServiceImpl userServiceImpl;
-    //webclient communication from auth to store user
+
     @PostMapping("/adduser")
     public ResponseEntity<User> create(@RequestBody UserDto userDto) {
         User user = UserMapper.toEntity(userDto);
