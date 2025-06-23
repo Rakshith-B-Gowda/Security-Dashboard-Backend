@@ -9,7 +9,7 @@ public class UserMapper {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
-        user.setPermission(Permission.DEFAULT);
-        return user;
+        user.setRole(dto.getRole());
+        user.setPermission(dto.getRole().equalsIgnoreCase("ADMIN") ? Permission.READ_UPLOAD : Permission.DEFAULT);        return user;
     }
 }

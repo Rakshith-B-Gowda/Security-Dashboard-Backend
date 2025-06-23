@@ -17,4 +17,5 @@ public class User {
     private String email;
     @Enumerated(EnumType.STRING)
     private Permission permission;
+    private String role;
 }
