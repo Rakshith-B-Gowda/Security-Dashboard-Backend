@@ -1,4 +1,4 @@
-package com.jpmc.user_service.dto;
+package com.jpmc.auth_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

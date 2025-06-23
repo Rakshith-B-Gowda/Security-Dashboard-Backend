@@ -8,12 +8,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class SignupRequestMapper {
 
-    public static Users toUser(SignupRequest request) {
+     static public Users toUser(SignupRequest request) {
         Users user = new Users();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
-        user.setRoles(Roles.DEFAULT);
+        Roles assignedRole = request.getRoles() != null ? Roles.ADMIN : Roles.USER;
+        user.setRoles(assignedRole);
         return user;
     }
 }

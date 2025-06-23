@@ -1,14 +1,13 @@
 package com.jpmc.user_service.dto;
 
-import lombok.AllArgsConstructor;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
-    private String name;
+public class RequestToAdminDto {
     private String email;
-    private String role;
+    private String requestedRole;
 }
