@@ -1,0 +1,18 @@
+package com.jpmc.user_service.service;
+
+
+import com.jpmc.user_service.dto.UpdateByAdminDto;
+import com.jpmc.user_service.enums.Permission;
+import com.jpmc.user_service.entity.User;
+
+import java.util.List;
+
+public interface UserService {
+
+    User createUser(User user);
+    List<User> getAllUsers();
+    User getUserById(Long id);
+    String updatePermission(UpdateByAdminDto updateByAdminDto) ;
+    Permission getPermission(Long id);
+    String sendRequestToAdmin(Long id, Permission permission);
+}
