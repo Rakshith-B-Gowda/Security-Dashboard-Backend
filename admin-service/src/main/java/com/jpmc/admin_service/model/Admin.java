@@ -15,5 +15,5 @@ public class Admin {
     private String requestedRole;
     @Enumerated(EnumType.STRING)
     private Status status;
-
+    private Long permissionRequestId;
 }
