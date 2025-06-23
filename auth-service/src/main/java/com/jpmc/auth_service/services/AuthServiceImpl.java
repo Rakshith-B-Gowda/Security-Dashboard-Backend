@@ -56,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
         UserDto userDto = new UserDto();
         userDto.setEmail(user.getEmail());
         userDto.setName(user.getName());
+        userDto.setRole(user.getRoles().name());
 
         webClientBuilder.build()
                 .post()
