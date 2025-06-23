@@ -1,5 +1,6 @@
 package com.jpmc.admin_service.controller;
 
+import com.jpmc.admin_service.dto.AddRequestDto;
 import com.jpmc.admin_service.model.Admin;
 import com.jpmc.admin_service.service.AdminService;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,11 @@ public class AdminController {
 
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
+    }
+
+    @PostMapping("/addrequest")
+    public ResponseEntity<Admin> addRequest(@RequestBody AddRequestDto addRequestDto){
+        return ResponseEntity.ok(adminService.createSignupRequest(addRequestDto));
     }
 
     // Endpoint to view all pending signup requests (for admin dashboard)

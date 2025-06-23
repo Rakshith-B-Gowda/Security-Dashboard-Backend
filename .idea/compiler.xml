@@ -15,6 +15,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="common-security" target="21" />
       <module name="Excel_Dashboard_Security_Microservice" target="21" />
     </bytecodeTargetLevel>
   </component>
@@ -23,6 +24,7 @@
       <module name="admin-service" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
+      <module name="common-security" options="-parameters" />
       <module name="service-registry" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>

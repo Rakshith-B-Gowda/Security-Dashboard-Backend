@@ -31,36 +31,45 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
+            String path = request.getPath().value();
+            logger.info("Incoming request to path: {}", path);
 
-            // Bypass token check for open endpoints (e.g. /auth/**)
+            // Check if the route should be secured
             if (!routeValidator.isSecured(request)) {
-                logger.info("Open endpoint {} accessed - bypassing JWT validation", request.getPath().value());
+                logger.info("Public endpoint detected. Skipping JWT validation for: {}", path);
                 return chain.filter(exchange);
             }
 
-            // Check if the Authorization header exists
+            logger.debug("Secured endpoint. Verifying Authorization header for: {}", path);
+
             if (!request.getHeaders().containsKey("Authorization")) {
-                logger.warn("Missing Authorization Header");
+                logger.warn("Authorization header missing for request to: {}", path);
                 return onError(exchange, "Missing Authorization Header", HttpStatus.UNAUTHORIZED);
             }
 
             String authHeader = request.getHeaders().getFirst("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                logger.warn("Invalid Authorization header format");
+                logger.warn("Invalid Authorization header format received: {}", authHeader);
                 return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
             }
-            String token = authHeader.replace("Bearer ", "");
+
+            String token = authHeader.replace("Bearer ", "").trim();
+            logger.debug("Extracted token: {}", token);
 
             try {
                 Claims claims = jwtTokenService.validateToken(token);
-                String role = claims.get("role", String.class);
+                logger.info("JWT validated successfully. Claims: {}", claims);
 
-                // Optionally forward the role header downstream
+                String role = claims.get("role", String.class);
+                logger.info("Extracted role from claims: {}", role);
+
                 ServerHttpRequest modifiedRequest = request.mutate()
                         .header("X-Role", role)
                         .build();
 
+                logger.info("Forwarding request with added X-Role header: {}", role);
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());
+
             } catch (JwtException e) {
                 logger.error("JWT validation failed: {}", e.getMessage());
                 return onError(exchange, "Invalid JWT Token: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
@@ -68,10 +77,8 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
         };
     }
 
-    /**
-     * Returns a JSON error response.
-     */
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus status) {
+        logger.warn("Authentication error: {}, returning {}", err, status);
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().add("Content-Type", "application/json");
         String errorJson = "{\"error\": \"" + err + "\"}";
@@ -80,6 +87,6 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
     }
 
     public static class Config {
-        // Additional filter configuration properties can be added here if needed.
+        // You can add additional properties for customization here in the future.
     }
 }
