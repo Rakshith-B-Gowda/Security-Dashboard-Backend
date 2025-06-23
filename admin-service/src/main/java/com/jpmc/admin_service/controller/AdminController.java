@@ -68,5 +68,16 @@ public class AdminController {
         }
     }
 
+    // Endpoint to view all approved requests
+    @GetMapping("/approvedlist")
+    public ResponseEntity<List<Admin>> listApproved() {
+        return ResponseEntity.ok(adminService.listApprovedRequests());
+    }
+
+    // Endpoint to view all rejected requests
+    @GetMapping("/rejectedlist")
+    public ResponseEntity<List<Admin>> listRejected() {
+        return ResponseEntity.ok(adminService.listRejectedRequests());
+    }
 
 }

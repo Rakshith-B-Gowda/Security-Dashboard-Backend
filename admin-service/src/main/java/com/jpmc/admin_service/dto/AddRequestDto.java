@@ -8,4 +8,5 @@ import lombok.NoArgsConstructor;
 public class AddRequestDto {
     private String email;
     private String requestedRole;
+    private Long permissionRequestId;
 }
