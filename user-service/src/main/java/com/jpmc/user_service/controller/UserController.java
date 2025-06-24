@@ -21,18 +21,18 @@ public class UserController {
     UserServiceImpl userServiceImpl;
 
     @PostMapping("/adduser")
-    public ResponseEntity<User> create(@RequestBody UserDto userDto) {
-        User user = UserMapper.toEntity(userDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userServiceImpl.createUser(user));
+    public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
+        UserDto createdUser = userServiceImpl.createUser(userDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<User>> findAll() {
+    public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userServiceImpl.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> findById(@PathVariable Long id) {
+    public ResponseEntity<UserDto> findById(@PathVariable Long id) {
         return ResponseEntity.ok(userServiceImpl.getUserById(id));
     }
     //send the webclient read request to admin

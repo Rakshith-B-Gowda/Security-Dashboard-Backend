@@ -10,9 +10,9 @@ import java.util.List;
 
 public interface UserService {
 
-    User createUser(User user);
-    List<User> getAllUsers();
-    User getUserById(Long id);
+    UserDto createUser(UserDto userDto);
+    List<UserDto> getAllUsers();
+    UserDto getUserById(Long id);
     String updatePermission(UpdateByAdminDto updateByAdminDto) ;
     Permission getPermission(Long id);
     String sendRequestToAdmin(Long id, Permission permission);
