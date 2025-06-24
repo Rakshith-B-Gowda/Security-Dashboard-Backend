@@ -37,19 +37,22 @@ public class UserServiceImpl implements UserService {
     private final WebClient webClient;
 
     @Override
-    public User createUser(User user) {
-        return userRepository.save(user);
+    public UserDto createUser(UserDto userDto) {
+        User user = UserMapper.toEntity(userDto);
+        User saved = userRepository.save(user);
+        return UserMapper.toDto(saved);
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream().map(UserMapper::toDto).toList();
     }
 
     @Override
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+        return UserMapper.toDto(user);
     }
 
     @Override
