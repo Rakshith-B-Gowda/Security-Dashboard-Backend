@@ -57,4 +57,10 @@ public class UserController {
     public ResponseEntity<String> adminUpdate(@RequestBody UpdateByAdminDto updateByAdminDto){
         return ResponseEntity.ok(userServiceImpl.updatePermission(updateByAdminDto));
     }
+
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<UserDto> getUserByEmail(@PathVariable String email) {
+        UserDto userDto = userServiceImpl.getUserByEmail(email);
+        return ResponseEntity.ok(userDto);
+    }
 }

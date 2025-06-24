@@ -10,6 +10,7 @@ public class ToAdminMapper {
         admin.setEmail(addRequestDto.getEmail());
         admin.setRequestedRole(addRequestDto.getRequestedRole());
         admin.setStatus(Status.PENDING);
+        admin.setPermissionRequestId(addRequestDto.getPermissionRequestId());
         return admin;
     }
 }
