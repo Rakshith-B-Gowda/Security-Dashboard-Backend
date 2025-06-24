@@ -3,6 +3,7 @@ package com.jpmc.user_service.service;
 import com.jpmc.user_service.dto.NotificationDto;
 import com.jpmc.user_service.dto.RequestToAdminDto;
 import com.jpmc.user_service.dto.UpdateByAdminDto;
+import com.jpmc.user_service.dto.UserDto;
 import com.jpmc.user_service.entity.Notification;
 import com.jpmc.user_service.entity.PermissionRequest;
 import com.jpmc.user_service.entity.User;
@@ -10,6 +11,7 @@ import com.jpmc.user_service.enums.Permission;
 import com.jpmc.user_service.enums.RequestStatus;
 import com.jpmc.user_service.exception.UserNotFoundException;
 import com.jpmc.user_service.mapper.AdminMapper;
+import com.jpmc.user_service.mapper.UserMapper;
 import com.jpmc.user_service.repository.NotificationRepository;
 import com.jpmc.user_service.repository.PermissionRequestRepository;
 import com.jpmc.user_service.repository.UserRepository;
@@ -157,5 +159,14 @@ public class UserServiceImpl implements UserService {
         LocalDateTime threshold = LocalDateTime.now().minusDays(30);
         notificationRepository.deleteByTimestampBefore(threshold);
         log.info("Old notifications deleted before {}", threshold);
+    }
+
+    @Override
+    public UserDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        return UserMapper.toDto(user);
     }
 }

@@ -2,6 +2,7 @@ package com.jpmc.user_service.service;
 
 
 import com.jpmc.user_service.dto.UpdateByAdminDto;
+import com.jpmc.user_service.dto.UserDto;
 import com.jpmc.user_service.enums.Permission;
 import com.jpmc.user_service.entity.User;
 
@@ -15,4 +16,5 @@ public interface UserService {
     String updatePermission(UpdateByAdminDto updateByAdminDto) ;
     Permission getPermission(Long id);
     String sendRequestToAdmin(Long id, Permission permission);
+    UserDto getUserByEmail(String email);
 }
