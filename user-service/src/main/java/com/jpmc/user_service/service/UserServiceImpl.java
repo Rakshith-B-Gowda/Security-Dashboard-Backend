@@ -1,14 +1,12 @@
 package com.jpmc.user_service.service;
 
-import com.jpmc.user_service.dto.NotificationDto;
-import com.jpmc.user_service.dto.RequestToAdminDto;
-import com.jpmc.user_service.dto.UpdateByAdminDto;
-import com.jpmc.user_service.dto.UserDto;
+import com.jpmc.user_service.dto.*;
 import com.jpmc.user_service.entity.Notification;
 import com.jpmc.user_service.entity.PermissionRequest;
 import com.jpmc.user_service.entity.User;
 import com.jpmc.user_service.enums.Permission;
 import com.jpmc.user_service.enums.RequestStatus;
+import com.jpmc.user_service.exception.PermissionRequestException;
 import com.jpmc.user_service.exception.UserNotFoundException;
 import com.jpmc.user_service.mapper.AdminMapper;
 import com.jpmc.user_service.mapper.UserMapper;
@@ -37,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private final WebClient webClient;
 
     @Override
-    public UserDto createUser(UserDto userDto) {
+    public UserDto createUser(UserDto userDto) throws UserNotFoundException {
         User user = UserMapper.toEntity(userDto);
         User saved = userRepository.save(user);
         return UserMapper.toDto(saved);
@@ -49,36 +47,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(Long id) {
+    public UserDto getUserById(Long id) throws UserNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         return UserMapper.toDto(user);
     }
 
     @Override
-    public String updatePermission(UpdateByAdminDto updateByAdminDto) {
+    public String updatePermission(UpdateByAdminDto updateByAdminDto) throws UserNotFoundException {
         User user = userRepository.findByEmail(updateByAdminDto.getEmail());
+        if (user == null) throw new UserNotFoundException("User not found with email: " + updateByAdminDto.getEmail());
         user.setPermission(Permission.valueOf(updateByAdminDto.getUpdateRole()));
         userRepository.save(user);
         return "Role Updated";
     }
 
     @Override
-    public Permission getPermission(Long id) {
+    public Permission getPermission(Long id) throws UserNotFoundException {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return user.getPermission();
     }
 
     @Override
-    public String sendRequestToAdmin(Long id, Permission permission) {
+    public String sendRequestToAdmin(Long id, Permission permission) throws UserNotFoundException, PermissionRequestException {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Permission currentPermission = user.getPermission();
 
         if (permission.ordinal() <= currentPermission.ordinal()) {
-            throw new IllegalStateException("You already have this permission or higher: " + currentPermission);
+            throw new PermissionRequestException("You already have this permission or higher: " + currentPermission);
         }
 
         // 1. Validate existing requests
@@ -88,7 +87,7 @@ public class UserServiceImpl implements UserService {
         if (latestRequest.isPresent()) {
             RequestStatus status = latestRequest.get().getStatus();
             if (status == RequestStatus.PENDING || status == RequestStatus.APPROVED) {
-                throw new IllegalStateException("Request for " + permission + " is already " + status);
+                throw new PermissionRequestException("Request for " + permission + " is already " + status);
             }
         }
 
@@ -118,24 +117,23 @@ public class UserServiceImpl implements UserService {
         return "Permission request submitted.";
     }
 
-    public List<PermissionRequest> getUserRequests(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
+    public List<PermissionRequest> getUserRequests(Long userId) throws UserNotFoundException {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         return permissionRequestRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
-    public String updateRequestStatus(Long requestId, RequestStatus status) {
+    public String updateRequestStatus(Long requestId, RequestStatus status) throws PermissionRequestException, UserNotFoundException {
         PermissionRequest request = permissionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
-
+                .orElseThrow(() -> new PermissionRequestException("Request not found"));
         request.setStatus(status);
         permissionRequestRepository.save(request);
-
         if (status == RequestStatus.APPROVED) {
             User user = request.getUser();
+            if (user == null) throw new UserNotFoundException("User not found for request");
             user.setPermission(request.getPermission());
             userRepository.save(user);
         }
-
         return "Request status updated to " + status;
     }
 
@@ -150,9 +148,9 @@ public class UserServiceImpl implements UserService {
         return notificationRepository.findByEmailOrderByTimestampDesc(email);
     }
 
-    public void markAsRead(Long id) {
+    public void markAsRead(Long id) throws PermissionRequestException {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new PermissionRequestException("Notification not found"));
         notification.setRead(true);
         notificationRepository.save(notification);
     }
@@ -165,11 +163,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserByEmail(String email) {
+    public UserDtoWithId getUserByEmail(String email) throws UserNotFoundException {
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
-        return UserMapper.toDto(user);
+        return UserMapper.toDtoWithId(user);
     }
 }
