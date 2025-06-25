@@ -1,83 +1,77 @@
 package com.jpmc.admin_service.controller;
 
 import com.jpmc.admin_service.dto.AddRequestDto;
+import com.jpmc.admin_service.exception.RequestNotPendingException;
+import com.jpmc.admin_service.exception.SignupRequestNotFoundException;
 import com.jpmc.admin_service.model.Admin;
 import com.jpmc.admin_service.service.AdminService;
-import org.springframework.http.HttpStatus;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Exposes REST endpoints for admin to manage signup requests.
+ */
+@Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping("/admin/requests")
 public class AdminController {
 
     private final AdminService adminService;
 
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
-
     @PostMapping("/addrequest")
-    public ResponseEntity<Admin> addRequest(@RequestBody AddRequestDto addRequestDto){
-        return ResponseEntity.ok(adminService.createSignupRequest(addRequestDto));
+    public ResponseEntity<Admin> addRequest(@RequestBody AddRequestDto dto) {
+        log.info("Received new signup request for email={}", dto.getEmail());
+        Admin created = adminService.createSignupRequest(dto);
+        log.info("Created signup request id={}", created.getId());
+        return ResponseEntity.ok(created);
     }
 
-    // Endpoint to view all pending signup requests (for admin dashboard)
     @GetMapping("/pending")
-    public List<Admin> listPendingRequests() {
-        return adminService.listPendingRequests();
+    public ResponseEntity<List<Admin>> listPending() {
+        log.info("Listing all pending signup requests");
+        return ResponseEntity.ok(adminService.listPendingRequests());
     }
 
-    // Endpoint to view ALL signup requests (pending, approved, rejected - for admin overview)
     @GetMapping("/all")
-    public List<Admin> listAllRequests() {
-        return adminService.listAllRequests();
+    public ResponseEntity<List<Admin>> listAll() {
+        log.info("Listing all signup requests");
+        return ResponseEntity.ok(adminService.listAllRequests());
     }
 
-    // Endpoint for Admin to approve a specific signup request
-    @PutMapping("/approve/{id}")
-    public ResponseEntity<String> approveRequest(@PathVariable Long id) {
-        try {
-            adminService.approveRequest(id);
-            // Using HttpStatus.OK and a message for more descriptive success than 204 No Content
-            return new ResponseEntity<>("Request ID " + id + " approved successfully.", HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict (e.g., already approved/rejected)
-        } catch (Exception e) {
-            return new ResponseEntity<>("An unexpected error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500 Internal Server Error
-        }
-    }
-
-    // Endpoint for Admin to reject a specific signup request
-    @PutMapping("/reject/{id}")
-    public ResponseEntity<String> rejectRequest(@PathVariable Long id) {
-        try {
-            adminService.rejectRequest(id);
-            // Using HttpStatus.OK and a message for more descriptive success than 204 No Content
-            return new ResponseEntity<>("Request ID " + id + " rejected successfully.", HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict
-        } catch (Exception e) {
-            return new ResponseEntity<>("An unexpected error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500 Internal Server Error
-        }
-    }
-
-    // Endpoint to view all approved requests
     @GetMapping("/approvedlist")
     public ResponseEntity<List<Admin>> listApproved() {
+        log.info("Listing approved signup requests");
         return ResponseEntity.ok(adminService.listApprovedRequests());
     }
 
-    // Endpoint to view all rejected requests
     @GetMapping("/rejectedlist")
     public ResponseEntity<List<Admin>> listRejected() {
+        log.info("Listing rejected signup requests");
         return ResponseEntity.ok(adminService.listRejectedRequests());
     }
 
+    @PutMapping("/approve/{id}")
+    public ResponseEntity<String> approveRequest(
+            @PathVariable Long id)
+            throws SignupRequestNotFoundException, RequestNotPendingException {
+        log.info("Approving signup request id={}", id);
+        String msg = adminService.approveRequest(id);
+        log.info("Approval successful for id={}", id);
+        return ResponseEntity.ok(msg);
+    }
+
+    @PutMapping("/reject/{id}")
+    public ResponseEntity<String> rejectRequest(
+            @PathVariable Long id)
+            throws SignupRequestNotFoundException, RequestNotPendingException {
+        log.info("Rejecting signup request id={}", id);
+        String msg = adminService.rejectRequest(id);
+        log.info("Rejection successful for id={}", id);
+        return ResponseEntity.ok(msg);
+    }
 }
