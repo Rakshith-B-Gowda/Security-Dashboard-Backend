@@ -3,6 +3,8 @@ package com.jpmc.admin_service.service;
 import com.jpmc.admin_service.dto.AddRequestDto;
 import com.jpmc.admin_service.dto.NotificationDto;
 import com.jpmc.admin_service.dto.UserRoleUpdateDto;
+import com.jpmc.admin_service.dto.RequestStatusUpdateDto;
+import com.jpmc.admin_service.enums.RequestStatus;
 import com.jpmc.admin_service.enums.Status;
 import com.jpmc.admin_service.mapper.ToAdminMapper;
 import com.jpmc.admin_service.model.Admin;
@@ -46,9 +48,7 @@ public class AdminServiceImpl implements AdminService {
         signupRequest.setStatus(Status.APPROVED);
         adminRepository.save(signupRequest);
 
-        System.out.println("Signup request ID: " + id + " approved.");
-
-        // Update role in user-service
+        // Update user role in user-service
         UserRoleUpdateDto updateDto = new UserRoleUpdateDto();
         updateDto.setEmail(signupRequest.getEmail());
         updateDto.setUpdateRole(signupRequest.getRequestedRole());
@@ -61,7 +61,20 @@ public class AdminServiceImpl implements AdminService {
                 .bodyToMono(Void.class)
                 .subscribe();
 
-        // Send notification
+        // Update permission request status to APPROVED
+        RequestStatusUpdateDto statusUpdate = new RequestStatusUpdateDto();
+        statusUpdate.setRequestId(signupRequest.getPermissionRequestId());  // ensure this ID is set at request time
+        statusUpdate.setStatus(RequestStatus.APPROVED);
+
+        webClientBuilder.build()
+                .put()
+                .uri("http://localhost:9093/user/requests/update-status")
+                .bodyValue(statusUpdate)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .subscribe();
+
+        // Send approval notification
         NotificationDto notification = new NotificationDto();
         notification.setEmail(signupRequest.getEmail());
         notification.setMessage("Your request for role " + signupRequest.getRequestedRole() + " has been approved.");
@@ -90,7 +103,19 @@ public class AdminServiceImpl implements AdminService {
 
         signupRequest.setStatus(Status.REJECTED);
         adminRepository.save(signupRequest);
-        System.out.println("Signup request ID: " + id + " rejected.");
+
+        // Update permission request status to DENIED
+        RequestStatusUpdateDto statusUpdate = new RequestStatusUpdateDto();
+        statusUpdate.setRequestId(signupRequest.getPermissionRequestId());
+        statusUpdate.setStatus(RequestStatus.DENIED);
+
+        webClientBuilder.build()
+                .put()
+                .uri("http://localhost:9093/user/requests/update-status")
+                .bodyValue(statusUpdate)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .subscribe();
 
         // Send rejection notification
         NotificationDto notification = new NotificationDto();
@@ -116,5 +141,15 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<Admin> listAllRequests() {
         return adminRepository.findAll();
+    }
+
+    @Override
+    public List<Admin> listApprovedRequests() {
+        return adminRepository.findByStatus(Status.APPROVED);
+    }
+
+    @Override
+    public List<Admin> listRejectedRequests() {
+        return adminRepository.findByStatus(Status.REJECTED);
     }
 }

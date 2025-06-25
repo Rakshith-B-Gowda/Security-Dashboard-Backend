@@ -21,4 +21,8 @@ public interface AdminService {
 
     // Lists all signup requests regardless of status
     List<Admin> listAllRequests();
+
+    List<Admin> listApprovedRequests();
+
+    List<Admin> listRejectedRequests();
 }

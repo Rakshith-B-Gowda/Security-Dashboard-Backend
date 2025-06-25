@@ -2,7 +2,8 @@ package com.jpmc.user_service.controller;
 
 import com.jpmc.user_service.dto.NotificationDto;
 import com.jpmc.user_service.entity.Notification;
-import com.jpmc.user_service.service.UserServiceImpl;
+import com.jpmc.user_service.exception.PermissionRequestException;
+import com.jpmc.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @PostMapping
     public ResponseEntity<Void> createNotification(@RequestBody NotificationDto dto) {
@@ -28,7 +29,7 @@ public class NotificationController {
     }
 
     @PatchMapping("/{id}/read")
-    public ResponseEntity<String> markAsRead(@PathVariable Long id) {
+    public ResponseEntity<String> markAsRead(@PathVariable Long id) throws PermissionRequestException {
         userService.markAsRead(id);
         return ResponseEntity.ok("Notification marked as read");
     }
