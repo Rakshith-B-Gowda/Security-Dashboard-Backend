@@ -1,7 +1,7 @@
 package com.jpmc.user_service.controller;
 
 import com.jpmc.user_service.dto.NotificationDto;
-import com.jpmc.user_service.entity.Notification;
+import com.jpmc.user_service.model.Notification;
 import com.jpmc.user_service.exception.PermissionRequestException;
 import com.jpmc.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;

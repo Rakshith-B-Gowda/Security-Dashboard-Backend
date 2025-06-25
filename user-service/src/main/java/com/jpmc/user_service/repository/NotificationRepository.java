@@ -1,6 +1,6 @@
 package com.jpmc.user_service.repository;
 
-import com.jpmc.user_service.entity.Notification;
+import com.jpmc.user_service.model.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

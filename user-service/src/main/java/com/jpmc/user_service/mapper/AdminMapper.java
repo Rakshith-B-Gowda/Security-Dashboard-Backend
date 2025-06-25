@@ -1,8 +1,7 @@
 package com.jpmc.user_service.mapper;
 
 import com.jpmc.user_service.dto.RequestToAdminDto;
-import com.jpmc.user_service.dto.UserDto;
-import com.jpmc.user_service.entity.User;
+import com.jpmc.user_service.model.User;
 import com.jpmc.user_service.enums.Permission;
 
 public class AdminMapper {

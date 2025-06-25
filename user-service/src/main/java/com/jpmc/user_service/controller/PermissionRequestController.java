@@ -1,15 +1,11 @@
 package com.jpmc.user_service.controller;
 
 import com.jpmc.user_service.dto.RequestStatusUpdateDto;
-import com.jpmc.user_service.entity.PermissionRequest;
-import com.jpmc.user_service.enums.Permission;
-import com.jpmc.user_service.enums.RequestStatus;
+import com.jpmc.user_service.model.PermissionRequest;
 import com.jpmc.user_service.exception.PermissionRequestException;
 import com.jpmc.user_service.exception.UserNotFoundException;
 import com.jpmc.user_service.service.UserService;
-import com.jpmc.user_service.service.UserServiceImpl;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
