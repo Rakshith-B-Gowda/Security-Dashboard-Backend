@@ -1,5 +1,6 @@
 package com.jpmc.admin_service.service;
 
+import com.jpmc.admin_service.dto.AddRequestDto;
 import com.jpmc.admin_service.model.Admin;
 
 import java.util.List;
@@ -16,8 +17,12 @@ public interface AdminService {
     void rejectRequest(Long id);
 
     // Creates a new signup request (used internally or by event listener from UserService)
-    Admin createSignupRequest(String email, String requestedRole);
+    Admin createSignupRequest(AddRequestDto addRequestDto);
 
     // Lists all signup requests regardless of status
     List<Admin> listAllRequests();
+
+    List<Admin> listApprovedRequests();
+
+    List<Admin> listRejectedRequests();
 }
