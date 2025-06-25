@@ -1,14 +1,13 @@
 package com.jpmc.user_service.service;
 
 import com.jpmc.user_service.dto.*;
-import com.jpmc.user_service.entity.Notification;
-import com.jpmc.user_service.entity.PermissionRequest;
-import com.jpmc.user_service.entity.User;
+import com.jpmc.user_service.model.Notification;
+import com.jpmc.user_service.model.PermissionRequest;
+import com.jpmc.user_service.model.User;
 import com.jpmc.user_service.enums.Permission;
 import com.jpmc.user_service.enums.RequestStatus;
 import com.jpmc.user_service.exception.PermissionRequestException;
 import com.jpmc.user_service.exception.UserNotFoundException;
-import com.jpmc.user_service.mapper.AdminMapper;
 import com.jpmc.user_service.mapper.UserMapper;
 import com.jpmc.user_service.repository.NotificationRepository;
 import com.jpmc.user_service.repository.PermissionRequestRepository;

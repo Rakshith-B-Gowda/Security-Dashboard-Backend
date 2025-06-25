@@ -4,12 +4,9 @@ import com.jpmc.user_service.dto.UpdateByAdminDto;
 import com.jpmc.user_service.dto.UserDto;
 import com.jpmc.user_service.dto.UserDtoWithId;
 import com.jpmc.user_service.enums.Permission;
-import com.jpmc.user_service.entity.User;
 import com.jpmc.user_service.exception.PermissionRequestException;
 import com.jpmc.user_service.exception.UserNotFoundException;
-import com.jpmc.user_service.mapper.UserMapper;
 import com.jpmc.user_service.service.UserService;
-import com.jpmc.user_service.service.UserServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +19,7 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
 
-    UserService userService;
+    private final UserService userService;
 
     @PostMapping("/adduser")
     public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) throws UserNotFoundException {

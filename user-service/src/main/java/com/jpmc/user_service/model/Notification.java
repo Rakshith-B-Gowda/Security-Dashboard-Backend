@@ -1,4 +1,4 @@
-package com.jpmc.user_service.entity;
+package com.jpmc.user_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;

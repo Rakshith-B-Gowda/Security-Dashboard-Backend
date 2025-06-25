@@ -2,7 +2,7 @@ package com.jpmc.user_service.mapper;
 
 import com.jpmc.user_service.dto.UserDto;
 import com.jpmc.user_service.dto.UserDtoWithId;
-import com.jpmc.user_service.entity.User;
+import com.jpmc.user_service.model.User;
 import com.jpmc.user_service.enums.Permission;
 
 public class UserMapper {
@@ -29,6 +29,7 @@ public class UserMapper {
         dto.setEmail(user.getEmail());
         dto.setName(user.getName());
         dto.setRole(user.getRole());
+        dto.setPermission(user.getPermission());
         return dto;
     }
 }

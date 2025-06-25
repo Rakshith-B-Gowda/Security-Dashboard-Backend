@@ -1,7 +1,7 @@
 package com.jpmc.user_service.repository;
 
-import com.jpmc.user_service.entity.PermissionRequest;
-import com.jpmc.user_service.entity.User;
+import com.jpmc.user_service.model.PermissionRequest;
+import com.jpmc.user_service.model.User;
 import com.jpmc.user_service.enums.Permission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
