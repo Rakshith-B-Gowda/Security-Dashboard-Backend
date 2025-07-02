@@ -1,0 +1,24 @@
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"MavenProjectsManager\">\r\n    <option name=\"originalFiles\">\r\n      <list>\r\n        <option value=\"$PROJECT_DIR$/api-gateway/pom.xml\" />\r\n        <option value=\"$PROJECT_DIR$/auth-service/pom.xml\" />\r\n        <option value=\"$PROJECT_DIR$/user-service/pom.xml\" />\r\n        <option value=\"$PROJECT_DIR$/admin-service/pom.xml\" />\r\n        <option value=\"$PROJECT_DIR$/service-registry/pom.xml\" />\r\n        <option value=\"$PROJECT_DIR$/common-security/pom.xml\" />\r\n        <option value=\"$USER_HOME$/Downloads/common-security/common-security/pom.xml\" />\r\n      </list>\r\n    </option>\r\n    <option name=\"ignoredFiles\">\r\n      <set>\r\n        <option value=\"$PROJECT_DIR$/common-security/pom.xml\" />\r\n        <option value=\"$USER_HOME$/Downloads/common-security/common-security/pom.xml\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_21\" default=\"true\" project-jdk-name=\"JavaSE-23\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/out\" />\r\n  </component>\r\n</project>
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 17d0ebd1f91446bb59565d20cc5464b4ecc274b8)
++++ b/.idea/misc.xml	(date 1751432409645)
+@@ -15,12 +15,12 @@
+     </option>
+     <option name="ignoredFiles">
+       <set>
+-        <option value="$PROJECT_DIR$/common-security/pom.xml" />
+         <option value="$USER_HOME$/Downloads/common-security/common-security/pom.xml" />
++        <option value="$PROJECT_DIR$/common-security/pom.xml" />
+       </set>
+     </option>
+   </component>
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="JavaSE-23" project-jdk-type="JavaSDK">
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_23" default="true" project-jdk-name="JavaSE-23" project-jdk-type="JavaSDK">
+     <output url="file://$PROJECT_DIR$/out" />
+   </component>
+ </project>
+\ No newline at end of file
