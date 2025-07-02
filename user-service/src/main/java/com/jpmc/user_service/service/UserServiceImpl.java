@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
     private final WebClient webClient;
 
     @Override
-    public UserDto createUser(UserDto userDto) throws UserNotFoundException {
+    public UserDto createUser(UserDto userDto) {
         User user = UserMapper.toEntity(userDto);
         User saved = userRepository.save(user);
         return UserMapper.toDto(saved);
@@ -42,7 +42,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(UserMapper::toDto).toList();
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -53,10 +56,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String updatePermission(UpdateByAdminDto updateByAdminDto) throws UserNotFoundException {
+    public String updatePermission(UpdateByAdminDto updateByAdminDto)
+            throws UserNotFoundException {
         User user = userRepository.findByEmail(updateByAdminDto.getEmail());
-        if (user == null) throw new UserNotFoundException("User not found with email: " + updateByAdminDto.getEmail());
-        user.setPermission(Permission.valueOf(updateByAdminDto.getUpdateRole()));
+        if (user == null) {
+            throw new UserNotFoundException(
+                    "User not found with email: " + updateByAdminDto.getEmail()
+            );
+        }
+        user.setPermission(
+                Permission.valueOf(updateByAdminDto.getUpdateRole())
+        );
         userRepository.save(user);
         return "Role Updated";
     }
@@ -69,28 +79,43 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String sendRequestToAdmin(Long id, Permission permission) throws UserNotFoundException, PermissionRequestException {
+    public String sendRequestToAdmin(Long id, Permission permission)
+            throws UserNotFoundException, PermissionRequestException {
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Permission currentPermission = user.getPermission();
-
-        if (permission.ordinal() <= currentPermission.ordinal()) {
-            throw new PermissionRequestException("You already have this permission or higher: " + currentPermission);
+        // 0. Prevent any new request if a PENDING request already exists
+        boolean hasPending = permissionRequestRepository
+                .existsByUserAndStatus(user, RequestStatus.PENDING);
+        if (hasPending) {
+            throw new PermissionRequestException(
+                    "You already have a pending permission request. " +
+                            "Please wait for it to be processed."
+            );
         }
 
-        // 1. Validate existing requests
-        Optional<PermissionRequest> latestRequest = permissionRequestRepository
-                .findTopByUserAndPermissionOrderByCreatedAtDesc(user, permission);
+        // 1. Ensure user isn't requesting same-or-lower permission
+        Permission currentPermission = user.getPermission();
+        if (permission.ordinal() <= currentPermission.ordinal()) {
+            throw new PermissionRequestException(
+                    "You already have this permission or higher: " + currentPermission
+            );
+        }
 
-        if (latestRequest.isPresent()) {
-            RequestStatus status = latestRequest.get().getStatus();
+        // 2. Optional per-permission duplicate check (still here for clarity)
+        Optional<PermissionRequest> latestSame = permissionRequestRepository
+                .findTopByUserAndPermissionOrderByCreatedAtDesc(user, permission);
+        if (latestSame.isPresent()) {
+            RequestStatus status = latestSame.get().getStatus();
             if (status == RequestStatus.PENDING || status == RequestStatus.APPROVED) {
-                throw new PermissionRequestException("Request for " + permission + " is already " + status);
+                throw new PermissionRequestException(
+                        "Request for " + permission + " is already " + status
+                );
             }
         }
 
-        // 2. Save new permission request and get generated ID
+        // 3. Create and save the new permission request
         PermissionRequest newRequest = new PermissionRequest();
         newRequest.setUser(user);
         newRequest.setPermission(permission);
@@ -99,7 +124,7 @@ public class UserServiceImpl implements UserService {
 
         PermissionRequest savedRequest = permissionRequestRepository.save(newRequest);
 
-        // 3. Send request to admin-service with permissionRequestId
+        // 4. Forward to admin-service
         RequestToAdminDto dto = new RequestToAdminDto();
         dto.setEmail(user.getEmail());
         dto.setRequestedRole(permission.name());
@@ -112,30 +137,52 @@ public class UserServiceImpl implements UserService {
                 .bodyToMono(String.class)
                 .block();
 
-        log.info("PermissionRequest ID {} sent to admin with response: {}", savedRequest.getId(), response);
+        log.info(
+                "PermissionRequest ID {} sent to admin with response: {}",
+                savedRequest.getId(),
+                response
+        );
         return "Permission request submitted.";
     }
 
-    public List<PermissionRequest> getUserRequests(Long userId) throws UserNotFoundException {
+    @Override
+    public List<PermissionRequest> getUserRequests(Long userId)
+            throws UserNotFoundException {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User not found with id: " + userId
+                ));
         return permissionRequestRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
-    public String updateRequestStatus(Long requestId, RequestStatus status) throws PermissionRequestException, UserNotFoundException {
-        PermissionRequest request = permissionRequestRepository.findById(requestId)
+    @Override
+    public String updateRequestStatus(Long requestId, RequestStatus status)
+            throws PermissionRequestException, UserNotFoundException {
+        PermissionRequest req = permissionRequestRepository.findById(requestId)
                 .orElseThrow(() -> new PermissionRequestException("Request not found"));
-        request.setStatus(status);
-        permissionRequestRepository.save(request);
+
+        req.setStatus(status);
+        permissionRequestRepository.save(req);
+
         if (status == RequestStatus.APPROVED) {
-            User user = request.getUser();
-            if (user == null) throw new UserNotFoundException("User not found for request");
-            user.setPermission(request.getPermission());
-            userRepository.save(user);
+            User user = req.getUser();
+            if (user == null) {
+                throw new UserNotFoundException("User not found for request");
+            }
+            Permission current = user.getPermission();
+            Permission incoming = req.getPermission();
+
+            // Only upgrade, never downgrade or reassign a lower/equal permission
+            if (incoming.ordinal() > current.ordinal()) {
+                user.setPermission(incoming);
+                userRepository.save(user);
+            }
         }
+
         return "Request status updated to " + status;
     }
 
+    @Override
     public void sendInAppNotification(NotificationDto dto) {
         Notification notification = new Notification();
         notification.setEmail(dto.getEmail());
@@ -143,10 +190,12 @@ public class UserServiceImpl implements UserService {
         notificationRepository.save(notification);
     }
 
+    @Override
     public List<Notification> getNotificationsForUser(String email) {
         return notificationRepository.findByEmailOrderByTimestampDesc(email);
     }
 
+    @Override
     public void markAsRead(Long id) throws PermissionRequestException {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new PermissionRequestException("Notification not found"));
